@@ -6,98 +6,72 @@ import Axios from "axios";
 import { useHistory } from "react-router-dom";
 
 interface Props {
-  closeModal?: any;
-  firstName: string;
-  lastName: string;
-  emailMobile: string;
-  password: string;
-  firstNameHandle?: any;
-  lastNameHandle?: any;
-  emailMobileHandle?: any;
-  passwordHandle?: any;
-  selectValue?: any;
-  selectHandle?: any;
-  monthValue?: any;
-  monthHandle?: any;
-  yearValue?: any;
-  yearHandle?: any;
+  closeModal?: () => void;
+  userDetails: {
+    firstName: string;
+    lastName: string;
+    emailMobile: string;
+    password: string;
+  };
+  userHandlers: {
+    firstNameHandle: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    lastNameHandle: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    emailMobileHandle: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    passwordHandle: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  };
+  dateSettings: {
+    selectValue: string;
+    selectHandle: (value: string) => void;
+    monthValue: string;
+    monthHandle: (value: string) => void;
+    yearValue: string;
+    yearHandle: (value: string) => void;
+  };
 }
 
-export const Signin: React.FC<Props> = ({
+const Signin: React.FC<Props> = ({
   closeModal,
-  firstName,
-  lastName,
-  emailMobile,
-  password,
-  firstNameHandle,
-  lastNameHandle,
-  emailMobileHandle,
-  passwordHandle,
-  selectValue,
-  selectHandle,
-  monthValue,
-  monthHandle,
-  yearValue,
-  yearHandle,
+  userDetails: { firstName, lastName, emailMobile, password },
+  userHandlers: { firstNameHandle, lastNameHandle, emailMobileHandle, passwordHandle },
+  dateSettings: { selectValue, selectHandle, monthValue, monthHandle, yearValue, yearHandle },
 }) => {
   const history = useHistory();
-  const [firstNameError, setFirstNameError] = useState<Boolean>(false);
-  const [lastNameError, setLastNameError] = useState<Boolean>(false);
-  const [numberEmailError, setNumberEmailError] = useState<Boolean>(false);
-  const [newPasswordError, setNewPasswordError] = useState<Boolean>(false);
+  const [firstNameError, setFirstNameError] = useState(false);
+  const [lastNameError, setLastNameError] = useState(false);
+  const [numberEmailError, setNumberEmailError] = useState(false);
+  const [newPasswordError, setNewPasswordError] = useState(false);
+  const [success, setSuccess] = useState(false);
+
   const firstNameErrorRef = useRef<HTMLInputElement>(null);
   const lastNameErrorRef = useRef<HTMLInputElement>(null);
   const numberEmailErrorRef = useRef<HTMLInputElement>(null);
   const newPasswordErrorRef = useRef<HTMLInputElement>(null);
-  const [success, setSuccess] = useState<Boolean>(false);
+
   const renderSignin = () => {
     if (!firstName) {
       setFirstNameError(true);
-      setLastNameError(false);
-      setNewPasswordError(false);
-      setNumberEmailError(false);
       firstNameErrorRef.current?.focus();
     } else if (!lastName) {
-      setNewPasswordError(false);
-      setFirstNameError(false);
       setLastNameError(true);
-      setNumberEmailError(false);
       lastNameErrorRef.current?.focus();
     } else if (!emailMobile) {
-      numberEmailErrorRef.current?.focus();
       setNumberEmailError(true);
-      setFirstNameError(false);
-      setNewPasswordError(false);
-      setLastNameError(false);
+      numberEmailErrorRef.current?.focus();
     } else if (!password) {
-      setNumberEmailError(false);
       setNewPasswordError(true);
-      setFirstNameError(false);
       newPasswordErrorRef.current?.focus();
-      setLastNameError(false);
-    } else if (selectValue == "") {
-      console.log(selectValue);
-      setNumberEmailError(false);
-      setNewPasswordError(false);
-      setFirstNameError(false);
-      setLastNameError(false);
     } else {
-      setNumberEmailError(false);
-      setNewPasswordError(false);
-      setFirstNameError(false);
-      setLastNameError(false);
-      setSuccess(true);
+      Axios.post("http://localhost:3001/authInsert/insertSign", {
+        username: firstName,
+        lastname: lastName,
+        email: emailMobile,
+        password: password,
+      }).then(() => {
+        localStorage.setItem("logged", "true");
+        setSuccess(true);
+        history.push("/"); 
+      });
     }
-
-    Axios.post("http://localhost:3001/authInsert/insertSign", {
-      username: firstName,
-      lastname: lastName,
-      email: emailMobile,
-      password: password,
-    }).then(() => {
-      localStorage.setItem("logged", "true");
-      window.location.reload();
-    });
   };
 
   return (
@@ -561,3 +535,5 @@ export const Signin: React.FC<Props> = ({
     </>
   );
 };
+
+export const MemoizedSignin = React.memo(Signin);
